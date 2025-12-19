@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Coin Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: sans-serif; background:#111; color:#eee; }
+    .row { display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #333; }
+    .long { color:#4ade80; }
+    .short { color:#f87171; }
+  </style>
+</head>
+<body>
+  <h2>MA32 Signals</h2>
+  <div id="app"></div>
+
+  <script>
+    fetch("/signals")
+      .then(r => r.json())
+      .then(data => {
+        const app = document.getElementById("app");
+        data.forEach(s => {
+          const div = document.createElement("div");
+          div.className = "row";
+          div.innerHTML = `
+            <span>${s.symbol}</span>
+            <span>${s.tf}</span>
+            <span class="${s.signal === "LONG" ? "long" : "short"}">
+              ${s.signal}
+            </span>
+          `;
+          app.appendChild(div);
+        });
+      });
+  </script>
+</body>
+</html>
+
