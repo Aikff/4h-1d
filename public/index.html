@@ -1,18 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Coin Tracker</title>
+  <title>MA32 Futures Signals</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: sans-serif; background:#111; color:#eee; }
-    .row { display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #333; }
-    .long { color:#4ade80; }
-    .short { color:#f87171; }
+    body { margin:0; padding:16px; background:#0f0f0f; color:#e5e5e5; font-family:Arial,sans-serif; }
+    h2 { margin-bottom:12px; }
+    .row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #2a2a2a; }
+    .long { color:#22c55e; }
+    .short { color:#ef4444; }
   </style>
 </head>
 <body>
-  <h2>MA32 Signals</h2>
+  <h2>Binance Futures MA32 Signals</h2>
   <div id="app"></div>
 
   <script>
@@ -20,6 +21,10 @@
       .then(r => r.json())
       .then(data => {
         const app = document.getElementById("app");
+        if (!data.length) {
+          app.innerHTML = "<p>Aktif sinyal yok</p>";
+          return;
+        }
         data.forEach(s => {
           const div = document.createElement("div");
           div.className = "row";
@@ -36,4 +41,3 @@
   </script>
 </body>
 </html>
-
