@@ -7,7 +7,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const BINANCE = "https://fapi.binance.com";
 
-let signals = []; // sadece aktif sinyaller tutulur
+/*
+  RAM dostu:
+  - sadece aktif sinyaller tutulur
+  - her scan overwrite edilir
+*/
+let signals = [];
 
 /* ------------------ YARDIMCI ------------------ */
 
@@ -36,55 +41,65 @@ async function getCloses(symbol, interval) {
 }
 
 async function scan() {
-  console.log("Scanning...");
-  const symbols = await getSymbols();
-  const result = [];
+  try {
+    console.log("Scanning...");
+    const symbols = await getSymbols();
+    const result = [];
 
-  for (const symbol of symbols) {
-    for (const tf of ["4h", "1d"]) {
-      const closes = await getCloses(symbol, tf);
-      if (closes.length < 33) continue;
+    for (const symbol of symbols) {
+      for (const tf of ["4h", "1d"]) {
+        const closes = await getCloses(symbol, tf);
+        if (closes.length < 33) continue;
 
-      const prev = closes.slice(0, -1);
-      const lastClose = closes.at(-1);
-      const prevClose = prev.at(-1);
+        const prev = closes.slice(0, -1);
+        const prevClose = prev.at(-1);
+        const lastClose = closes.at(-1);
 
-      const prevMA = sma(prev);
-      const lastMA = sma(closes);
+        const prevMA = sma(prev);
+        const lastMA = sma(closes);
 
-      if (prevClose < prevMA && lastClose > lastMA)
-        result.push({ symbol, tf, signal: "LONG" });
+        if (prevClose < prevMA && lastClose > lastMA)
+          result.push({ symbol, tf, signal: "LONG" });
 
-      if (prevClose > prevMA && lastClose < lastMA)
-        result.push({ symbol, tf, signal: "SHORT" });
+        if (prevClose > prevMA && lastClose < lastMA)
+          result.push({ symbol, tf, signal: "SHORT" });
+      }
     }
-  }
 
-  signals = result; // overwrite → RAM şişmez
+    signals = result; // overwrite → RAM şişmez
+  } catch (e) {
+    console.error("Scan error:", e.message);
+  }
 }
 
 /* ------------------ CRON ------------------ */
 /*
-  30 dakikada bir:
-  - Render free için güvenli
-  - Ban riski düşük
+  Render Free için güvenli:
+  - 30 dakikada bir
+  - cold start sonrası gecikmeli başlatma
 */
-cron.schedule("*/30 * * * *", scan);
+setTimeout(() => {
+  cron.schedule("*/30 * * * *", scan);
+}, 120000);
 
-/* ------------------ API ------------------ */
+/* ------------------ ROUTES ------------------ */
 
+// UptimeRobot + Render health check
+app.get("/", (req, res) => {
+  res.send("OK");
+});
+
+// API
 app.get("/signals", (req, res) => {
   res.json(signals);
 });
 
-/* ------------------ FRONTEND ------------------ */
-
+// Static frontend
 app.use(express.static(path.join(process.cwd(), "public")));
 
 /* ------------------ START ------------------ */
 
 app.listen(PORT, () => {
   console.log(`Running on ${PORT}`);
-  scan(); // ilk açılışta bir kez
+  scan(); // ilk açılışta 1 kez
 });
-
