@@ -2,42 +2,24 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>MA32 Futures Signals</title>
+  <title>Coin Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body { margin:0; padding:16px; background:#0f0f0f; color:#e5e5e5; font-family:Arial,sans-serif; }
-    h2 { margin-bottom:12px; }
-    .row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #2a2a2a; }
-    .long { color:#22c55e; }
-    .short { color:#ef4444; }
-  </style>
 </head>
 <body>
-  <h2>Binance Futures MA32 Signals</h2>
-  <div id="app"></div>
+  <h1>Coin Tracker</h1>
+  <p>Render Free Tier uyumlu</p>
+
+  <button onclick="loadSignals()">Sinyalleri Getir</button>
+
+  <pre id="output"></pre>
 
   <script>
-    fetch("/signals")
-      .then(r => r.json())
-      .then(data => {
-        const app = document.getElementById("app");
-        if (!data.length) {
-          app.innerHTML = "<p>Aktif sinyal yok</p>";
-          return;
-        }
-        data.forEach(s => {
-          const div = document.createElement("div");
-          div.className = "row";
-          div.innerHTML = `
-            <span>${s.symbol}</span>
-            <span>${s.tf}</span>
-            <span class="${s.signal === "LONG" ? "long" : "short"}">
-              ${s.signal}
-            </span>
-          `;
-          app.appendChild(div);
-        });
-      });
+    async function loadSignals() {
+      const res = await fetch("/signals");
+      const data = await res.json();
+      document.getElementById("output").textContent =
+        JSON.stringify(data, null, 2);
+    }
   </script>
 </body>
 </html>
